@@ -1,1 +1,1 @@
-HandyTools ansible-decrypt D:\projects-work\dsr\dsr-service\ansible\vars\main_nonprod_vault.yml
+..\publish\HandyTools ansible-decrypt D:\projects-work\dsr\dsr-service\ansible\vars\main_nonprod_vault.yml
