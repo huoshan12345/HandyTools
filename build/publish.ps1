@@ -15,12 +15,14 @@ $ErrorActionPreference = "Stop"
 
 $dir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 $root = Join-Path $dir "..\"
-$src = Join-Path $root "src"
 $output = Join-Path $root "publish"
-If ((test-path $output)) {
+If (test-path $output) {
   Remove-Item -Recurse -Force $output
 }
 New-Item -ItemType Directory -Force -Path $output | Out-Null
 Invoke-Call -ScriptBlock { 
-  dotnet publish --nologo -v q $root -o $output
+  dotnet publish --nologo $root -o $output
+  
+  $dest = [io.path]::combine("C:\", "bin")
+  Copy-Item -Path $output -Destination $dest -Recurse -Force -Container:$false
 }

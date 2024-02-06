@@ -44,7 +44,7 @@ public class WslHelper
         await process.WaitForExitAsync();
 #endif
 
-        var output = queue.Where(m => m.IsNonEmpty()).JoinWith(Environment.NewLine);
+        var output = queue.Where(m => m is not null).JoinWith(Environment.NewLine);
 
         if (process.ExitCode != 0)
             throw new ProcessException(process.ExitCode, output);

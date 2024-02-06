@@ -1,5 +1,5 @@
-﻿using CommandLine.Text;
-using CommandLine;
+﻿using System.Text;
+using CommandLine.Text;
 using HandyTools.Options;
 using HandyTools.Utilities.Processing;
 
@@ -21,31 +21,40 @@ public static class CommandProcessor
         }
 
         var helpText = HelpText.AutoBuild(result, h => h, e => e);
-        Console.WriteLine(helpText);
+        throw new InvalidOperationException(helpText);
     }
 
     private static async Task AnsibleVault(string command, AnsibleVaultOptions options)
     {
         var path = await ProcessHelper.Wsl.ConvertWinPathToWsl(options.Path);
         var actualCommand = command.Replace("ansible-", "ansible-vault ");
-        var fullCommand = $"{actualCommand} --vault-id {options.VaultId} {path}";
+        var builder = new StringBuilder(actualCommand);
+        foreach (var id in options.VaultId)
+        {
+            builder.Append(" --vault-id ").Append(id);
+        }
+        builder.Append(' ').Append(path);
+
+        var fullCommand = builder.ToString();
         await ProcessHelper.Wsl.ExecuteCommandAsync(fullCommand);
     }
 
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(AnsibleVaultOptions))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(AnsibleDecryptOptions))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(AnsibleEncryptOptions))]
     public static async Task Process(string[] args)
     {
         if (args.Length == 0)
         {
-            Console.WriteLine("Empty command!");
-            return;
+            throw new InvalidOperationException("Empty command!");
         }
 
         var command = args[0];
         var actualArgs = args[1..];
         var task = command.ToLower() switch
         {
-            AnsibleEncrypt or AnsibleDecrypt => Process<AnsibleVaultOptions>(actualArgs, o => AnsibleVault(command, o)),
+            AnsibleEncrypt => Process<AnsibleEncryptOptions>(actualArgs, o => AnsibleVault(command, o)),
+            AnsibleDecrypt => Process<AnsibleDecryptOptions>(actualArgs, o => AnsibleVault(command, o)),
             _ => UnhandledCommand(command),
         };
         await task;
@@ -53,8 +62,7 @@ public static class CommandProcessor
 
         static Task UnhandledCommand(string command)
         {
-            Console.WriteLine("Unsupported command: " + command);
-            return Task.CompletedTask;
+            throw new InvalidOperationException("Unsupported command: " + command);
         }
     }
 }

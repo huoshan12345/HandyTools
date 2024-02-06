@@ -1,12 +1,10 @@
-﻿using CommandLine;
+﻿namespace HandyTools.Options;
 
-namespace HandyTools.Options;
-
-public class AnsibleVaultOptions
+public abstract class AnsibleVaultOptions
 {
     [Value(0, Required = true)]
     public string Path { get; set; } = default!;
 
-    [Option(Required = false, Default = "dev@~/.ansible_vault_password_dev")]
-    public string VaultId { get; set; } = default!;
+    [Option("vault-id", Required = false, Default = new[] { Constants.VaultIds.Huoshan })]
+    public virtual IEnumerable<string> VaultId { get; set; } = default!;
 }
